@@ -52,6 +52,8 @@ return html`
 }
 
 
+
+
 // ======================================= React components =================================
 
 class Excel extends React.Component {
@@ -134,7 +136,7 @@ class Excel extends React.Component {
         }
     }
 
-    search() {
+    search(e) {
         const needle = e.target.value.toLowerCase();
         if (!needle) {
             this.setState({data: this.preSearchData});
@@ -151,26 +153,30 @@ class Excel extends React.Component {
         
 //==============================================================
 
+const searchRow = !this.state.search ? null :
+html`
 
-const searchRow = !this.state.search ? null : html`
 <tr onChange=${this.search}>
     ${this.props.headers.map( (_, idx) => 
         html`
         <td key=${idx}>
-            <input type="text" data-idx=${idx}>
+            <input type='text' data-idx=${idx}/>
         </td>
         `
         )}
 </tr>
 `
 
+
 //===============================================================
 
     return html`
      <div>
-      <button className="toolbar" onClick=${this.toggleSearch}>
+      <div className="my-3 ml-2">
+      <button className="btn btn-info" onClick=${this.toggleSearch}>
         ${this.state.search ? 'Hide search' : 'Show search'}
       </button>
+      </div>
 
       <table className="table">
         <thead onClick=${this.sort}>
@@ -184,18 +190,28 @@ const searchRow = !this.state.search ? null : html`
             </tr>
         </thead>
         <tbody onDoubleClick=${this.showEditor}>
-            ${this.state.data.map( (row, rowidx) =>
-                html`
-                    <tr scope="row" key=${rowidx} data-row=${rowidx}>
+        ${searchRow} 
+           ${this.state.data.map( (row) => {
+                const recordId = row[row.length - 1];
+                return html`
+                    <tr scope="row" key=${recordId} data-row=${recordId}>
                      ${row.map( (cell, columnidx) => {
+                        if (columnidx === this.props.headers.length) {
+                            //do not show the record ID in the table UI
+                            return;
+                        }
                         const edit = this.state.edit;
-                        if ( edit && edit.row === rowidx && edit.column === columnidx) {
+                        if ( edit && 
+                            edit.row === recordId && 
+                            edit.column === columnidx) {
                             cell = formComponent(cell,this.save) 
                         }
                        return html`<td key=${columnidx}>${cell}</td>`
                      })}
                     </tr>
                 `
+            }
+            
             )}
         </tbody>
       </table>
